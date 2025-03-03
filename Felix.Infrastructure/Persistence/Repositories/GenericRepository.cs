@@ -19,7 +19,7 @@ namespace Felix.Infrastructure.Persistence.Repositories
 
         public async Task<IEnumerable<T>> GetAllAsync() 
         { 
-            var response = await _entity.Where(x => x.State == 1 && x.AuditDeleteUser == null && x.AuditDeleteDate == null).ToListAsync();
+            var response = await _entity.Where(x => x.AuditDeleteUser == null && x.AuditDeleteDate == null).ToListAsync();
 
             return response!;
         }
@@ -46,7 +46,7 @@ namespace Felix.Infrastructure.Persistence.Repositories
         {
             entity.AuditUpdateUser = 1;
             entity.AuditUpdateDate = DateTime.Now;
-
+             
             _dbContext.Update(entity);
             _dbContext.Entry(entity).Property(x => x.AuditCreateUser).IsModified = false;
             _dbContext.Entry(entity).Property(x => x.AuditCreateDate).IsModified = false;

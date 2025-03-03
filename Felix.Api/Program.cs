@@ -1,9 +1,12 @@
 using Felix.Infrastructure;
+using Felix.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration)
+                .AddApplication();
+
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();

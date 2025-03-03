@@ -1,4 +1,8 @@
-﻿using Felix.Infrastructure.Persistence.Context;
+﻿using Felix.Application.Interfaces.Persistence;
+using Felix.Application.Interfaces.Services;
+using Felix.Infrastructure.Persistence.Context;
+using Felix.Infrastructure.Persistence.Repositories;
+using Felix.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,9 +15,11 @@ namespace Felix.Infrastructure
         {
             var assembly = typeof(AppDbContext).Assembly.FullName;
             services.AddDbContext<AppDbContext>(
-                options => options.UseNpgsql(configuration.GetConnectionString
+                options => options.UseSqlServer(configuration.GetConnectionString
                 ("DefaultConnection"), b => b.MigrationsAssembly(assembly)));
 
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             return services;
         }
