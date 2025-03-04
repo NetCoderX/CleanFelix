@@ -25,24 +25,21 @@ namespace Felix.Infrastructure.Persistence.Repositories
         }
         public async Task<T> GetByIdAsync(int id)
         {
-            var response = await _entity.SingleOrDefaultAsync(x => x.AuditDeleteUser == null && x.AuditDeleteDate == null);
+            var response = await _entity.SingleOrDefaultAsync(x => x.Id == id && x.AuditDeleteUser == null && x.AuditDeleteDate == null);
 
-            return response!;
+             return response!;
         }
 
-        public async Task<bool> CreateAsync(T entity)
+        public async Task CreateAsync(T entity)
         {
             entity.AuditCreateUser = 1;
             entity.AuditCreateDate = DateTime.Now;
             entity.State = 1;
 
             await _dbContext.AddAsync(entity);
-
-            var records = await _dbContext.SaveChangesAsync();
-            return records > 0; 
         }
 
-        public async Task<bool> UpdateAsync(T entity)
+        public void UpdateAsync(T entity)
         {
             entity.AuditUpdateUser = 1;
             entity.AuditUpdateDate = DateTime.Now;
@@ -50,12 +47,9 @@ namespace Felix.Infrastructure.Persistence.Repositories
             _dbContext.Update(entity);
             _dbContext.Entry(entity).Property(x => x.AuditCreateUser).IsModified = false;
             _dbContext.Entry(entity).Property(x => x.AuditCreateDate).IsModified = false;
-            
-            var records = await _dbContext.SaveChangesAsync();
-            return records > 0;
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
             T entity = await GetByIdAsync(id);
             entity.AuditDeleteUser = 1;
@@ -63,10 +57,13 @@ namespace Felix.Infrastructure.Persistence.Repositories
             entity.State = 0;
 
             _dbContext.Update(entity);
-
-            var records = await _dbContext.SaveChangesAsync();
-            return records > 0;
         }
 
+        public IQueryable<T> GetAllQueryable()
+        {
+            var response = _entity.Where(x => x.AuditDeleteUser == null && x.AuditDeleteDate == null);
+
+            return response;
+        }
     }
 }

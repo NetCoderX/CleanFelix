@@ -16,9 +16,6 @@ namespace Felix.Infrastructure.Persistence.Context.Configuration
             builder.Property(x => x.Name)
                 .HasMaxLength(50);
 
-            builder.HasIndex(x => x.Name)
-                .IsUnique();
-
             builder.Property(x => x.LastName)
                 .HasMaxLength(50);
 

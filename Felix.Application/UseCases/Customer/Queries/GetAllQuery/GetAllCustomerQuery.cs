@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Felix.Application.UseCases.Customer.Queries.GetAllQuery
 {
-    public class GetAllCustomerQuery : IRequest<BaseResponse<IEnumerable<CustomerResponseDto>>>
+    public class GetAllCustomerQuery : BaseFilters, IRequest<BaseResponse<IEnumerable<CustomerResponseDto>>>
     {
     }
 }

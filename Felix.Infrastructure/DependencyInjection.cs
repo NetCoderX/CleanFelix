@@ -17,9 +17,10 @@ namespace Felix.Infrastructure
             services.AddDbContext<AppDbContext>(
                 options => options.UseSqlServer(configuration.GetConnectionString
                 ("DefaultConnection"), b => b.MigrationsAssembly(assembly)));
-
-            services.AddTransient<IUnitOfWork, UnitOfWork>();
+             
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
+            services.AddTransient<IOrderingQuery, OrderingQuery>();
 
             return services;
         }

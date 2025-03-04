@@ -3,6 +3,7 @@ using Felix.Application.Commons.Bases;
 using Felix.Application.Dtos.Customer;
 using Felix.Application.Interfaces.Services;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Felix.Application.UseCases.Customer.Queries.GetAllQuery
 {
@@ -11,9 +12,11 @@ namespace Felix.Application.UseCases.Customer.Queries.GetAllQuery
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IOrderingQuery _orderingQuery;
 
-        public GetAllCustomerHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public GetAllCustomerHandler(IUnitOfWork unitOfWork, IMapper mapper, IOrderingQuery orderingQuery)
         {
+            _orderingQuery = orderingQuery;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
          }
@@ -25,16 +28,39 @@ namespace Felix.Application.UseCases.Customer.Queries.GetAllQuery
              
             try
             {
-                var customers = await _unitOfWork.Customer.GetAllAsync();
+                var customers = _unitOfWork.Customer.GetAllQueryable();
 
-                if(customers is null)
+                if(request.NumFilter is not null && !string.IsNullOrEmpty(request.TextFilter))
                 {
-                    response.IsSuccess = false;
-                    response.Message = "No se encontraron registros.";
-                    return response;
+                    switch(request.NumFilter)
+                    {
+                        case 1:
+                            customers = customers.Where(x => x.Name.Contains(request.TextFilter));
+                            break;
+                        case 2:
+                            customers = customers.Where(x => x.LastName.Contains(request.TextFilter));
+                            break;
+                    }
                 }
+
+                if(request.StateFilter is not null)
+                {
+                    customers = customers.Where(x => x.State == request.StateFilter);
+                }
+
+                if(!string.IsNullOrEmpty(request.StartDate) && !string.IsNullOrEmpty(request.EndDate))
+                {
+                    customers = customers.Where(x => x.AuditCreateDate > Convert.ToDateTime(request.StartDate)
+                    && x.AuditCreateDate < Convert.ToDateTime(request.EndDate).AddDays(1));
+                }
+
+                request.Sort ??= "Id";
+
+                var items = await _orderingQuery.Ordering(request, customers).ToListAsync(cancellationToken);
+
                 response.IsSuccess = true;
-                response.Data = _mapper.Map<IEnumerable<CustomerResponseDto>>(customers);
+                response.TotalRecords = await customers.CountAsync(cancellationToken);
+                response.Data = _mapper.Map<IEnumerable<CustomerResponseDto>>(items);
                 response.Message = "Consulta exitosa.";
 
             }
